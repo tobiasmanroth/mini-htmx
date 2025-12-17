@@ -17,7 +17,7 @@
           [:title title]
           ;; PicoCSS
           [:link {:rel "stylesheet"
-                  :href "https://cdn.jsdelivr.net/npm/picnic@7.1.0/picnic.min.css"}]
+                  :href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"}]
           ;; HTMX
           [:script {:src "https://unpkg.com/htmx.org@2.0.4"}]]
          [:body
@@ -89,8 +89,8 @@
 
   (when @nrepl-server
     (nrepl/stop-server @nrepl-server))
-  (reset! nrepl-server (nrepl/start-server :port 4000))
-  (println "nREPL server started on port 4000"))
+  (reset! nrepl-server (nrepl/start-server :port 8282))
+  (println "nREPL server started on port 8282"))
 
 (defn stop-server! []
   (when @server
@@ -106,5 +106,5 @@
 (defn -main [& args]
   (let [port (if (first args)
                (Integer/parseInt (first args))
-               3000)]
+               8181)]
     (start-server! port)))
