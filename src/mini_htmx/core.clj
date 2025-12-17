@@ -36,16 +36,16 @@
 
 
           [:hr]
-          [:h2 "Random YouTube Link Demo"]
-          [:form {:hx-post "/random-youtube-link"
-                  :hx-target "#random-youtube-link"
+          [:h2 "Find forgotten YouTube videos"]
+          [:form {:hx-post "/random-forgotten-youtube-link"
+                  :hx-target "#random-forgotten-youtube-link"
                   :hx-swap "innerHTML"}
            [:button {:type "submit" :class "button"} "Generate a random YouTube link"]]
-          [:div {:id "random-youtube-link"}]))
+          [:div {:id "random-forgotten-youtube-link"}]))
 
 
-(defn greet-handler [request]
-  (let [search-query (mini-htmx.youtube-recycle-bin/random-search-query)
+(defn forgotten-youtube-link-handler [request]
+  (let [search-query (mini-htmx.youtube-recycle-bin/random-forgotten-search-query)
         link (str "https://youtube.com/results?search_query=" search-query)]
     {:status 200
      :headers {"Content-Type" "text/html"}
@@ -61,8 +61,8 @@
        :headers {"Content-Type" "text/html"}
        :body (index-page)}
 
-      (and (= uri "/random-youtube-link") (= method :post))
-      (greet-handler request)
+      (and (= uri "/random-forgotten-youtube-link") (= method :post))
+      (forgotten-youtube-link-handler request)
 
       :else
       {:status 404

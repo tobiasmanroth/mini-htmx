@@ -13,16 +13,18 @@
    (random-padded-int 0 max)))
 
 (defn random-yyyyMMdd
-  ([format]
-   (let [youtube-founded (java.time.LocalDate/of 2005 2 14)
-         today (java.time.LocalDate/now)
-         days-between (.between java.time.temporal.ChronoUnit/DAYS youtube-founded today)
-         random-days (rand-int (inc days-between))
-         random-date (.plusDays youtube-founded random-days)
-         formatter (java.time.format.DateTimeFormatter/ofPattern format)]
-     (.format random-date formatter)))
-  ([]
-   (random-yyyyMMdd "yyyyMMdd")))
+  [{:keys [format start-year]
+    :or {format "yyyyMMdd"}}]
+  (let [youtube-founded (java.time.LocalDate/of 2005 2 14)
+        start-date (if start-year
+                     (java.time.LocalDate/of start-year 1 1)
+                     youtube-founded)
+        today (java.time.LocalDate/now)
+        days-between (.between java.time.temporal.ChronoUnit/DAYS start-date today)
+        random-days (rand-int (inc days-between))
+        random-date (.plusDays start-date random-days)
+        formatter (java.time.format.DateTimeFormatter/ofPattern format)]
+    (.format random-date formatter)))
 
 (comment
   (random-ymd)
@@ -67,21 +69,21 @@
 
 ;; TODO some search terms need the query parameter "&sp=CAISAhAB" to sort by upload date. How to do?
 (def forgotten-videos
-  [["IMG " [:padded-digits 999]]
-   ["MVI " [:padded-digits 999]]
-   ["MOV " [:padded-digits 999]]
-   ["100 " [:padded-digits 999]]
-   ["SAM " [:padded-digits 999]]
-   ["DSC " [:padded-digits 999]]
-   ["SDV " [:padded-digits 999]]
-   ["DSCF" [:padded-digits 999]]
-   ["DSCN" [:padded-digits 999]]
-   ["PICT" [:padded-digits 999]]
-   ["MAQ0" [:padded-digits 999]]
-   ["FILE" [:padded-digits 999]]
-   ["GOPR" [:padded-digits 999]]
-   ["GP01" [:padded-digits 999]]
-   ["GX01" [:padded-digits 999]]
+  [["IMG " [:padded-digits 9999]]
+   ["MVI " [:padded-digits 9999]]
+   ["MOV " [:padded-digits 9999]]
+   ["100 " [:padded-digits 9999]]
+   ["SAM " [:padded-digits 9999]]
+   ["DSC " [:padded-digits 9999]]
+   ["SDV " [:padded-digits 9999]]
+   ["DSCF" [:padded-digits 9999]]
+   ["DSCN" [:padded-digits 9999]]
+   ["PICT" [:padded-digits 9999]]
+   ["MAQ0" [:padded-digits 9999]]
+   ["FILE" [:padded-digits 9999]]
+   ["GOPR" [:padded-digits 9999]]
+   ["GP01" [:padded-digits 9999]]
+   ["GX01" [:padded-digits 9999]]
    ["DJI " [:padded-digits 2000]]
    ["HNI 0" [:padded-digits 100]]
    ["WA0" [:padded-digits 999]]
@@ -95,21 +97,40 @@
    ["\"My Slideshow Video\""]
    ["\"My Slideshow\""]
    ["\"My Slideshow " [:padded-digits 99] "\""]
-
+   ["\"My Stupeflix Video\""]
+   ["\"My Stupeflix Video " [:padded-digits 9999] "\""]
+   [[:random-yyyyMMdd {}]]
+   ["WIN " [:random-yyyyMMdd {:start-year 2013}]]
+   ["VID " [:random-yyyyMMdd {:start-year 2008}]]
+   ["Capture " [:random-yyyyMMdd {:start-year 2008}]]
+   ["InShot " [:random-yyyyMMdd {:start-year 2016}]]
+   ["PXL " [:random-yyyyMMdd {:start-year 2020}]]
+   ["AUD-" [:random-yyyyMMdd {:start-year 2017}]]
+   ["WhatsApp Video " [:random-yyyyMMdd {:format "yyyy MM dd"
+                                         :start-year 2015}]]
+   ["Desktop " [:random-yyyyMMdd {:format "yyyy MM dd"}]]
    ])
+
+(comment
+  (map
+    (fn [f]
+      (println f)
+      (generate-string f))
+    forgotten-videos)
+  )
 
 (def new-videos
   [["IMG"]
    ["MVI"]
-   [[:random-yyyyMMdd]]
-   ["WIN " [:random-yyyyMMdd]]
-   ["Capture " [:random-yyyyMMdd]]
-   ["VID " [:random-yyyyMMdd]]
+   [[:random-yyyyMMdd {}]]
+   ["WIN " [:random-yyyyMMdd {}]]
+   ["Capture " [:random-yyyyMMdd {}]]
+   ["VID " [:random-yyyyMMdd {}]]
    ["\"My Movie " [:random-integer 100] "\""]
    ["\"My Edited Video\""]
    ["/Storage/Emulated/"]
    ["PXL"]
-   ["InShot " [:random-yyyyMMdd]]
+   ["InShot " [:random-yyyyMMdd {}]]
    ["WhatsApp Video " [:random-yyyy]]
    ["FullSizeRender"]
    ["RpReplay"]
@@ -123,15 +144,15 @@
    ["Recording gvo"]
    ["Lv 0"]
    ["bmdjAAAF"]
-   ["YouCut " [:random-yyyyMMdd]]
-   ["\"Video " [:random-yyyyMMdd] "\""]
+   ["YouCut " [:random-yyyyMMdd {}]]
+   ["\"Video " [:random-yyyyMMdd {}] "\""]
    ["\"Copy of Copy of\""]
    ["\"Untitled video\""]
    ["\"YTPMV\""]
    ["\"Klasky Csupo\""]
    ["\"Com Oculus Vrshell\""]
    ["\"Com Oculus Metacam\""]
-   ["Desktop " [:random-yyyyMMdd "yyyy MM dd"]]
+   ["Desktop " [:random-yyyyMMdd {:format "yyyy MM dd"}]]
    ])
 
 (defn generate-string
@@ -151,13 +172,13 @@
                ))
            fmt)))
 
-(defn random-search-query
+(defn random-forgotten-search-query
   []
   (generate-string (rand-nth forgotten-videos))
   )
 
 (comment
-  (random-search-query)
+  (random-forgotten-search-query)
 
-  (generate-string ["MOL0" [:random-character "ABCDEF"]  [:random-integer 9]])
+  (generate-string ["Desktop " [:random-yyyyMMdd {:format "yyyy MM dd"}]])
   )
