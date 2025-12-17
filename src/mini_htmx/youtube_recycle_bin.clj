@@ -42,13 +42,28 @@
   (random-yyyy)
   )
 
+(defn random-character
+  [s]
+  (rand-nth (seq s)))
 
+(defn random-hhmmss
+  []
+  (let [hours (rand-int 24)
+        minutes (rand-int 60)
+        seconds (rand-int 60)]
+    (format "%02d%02d%02d" hours minutes seconds)))
+
+(comment
+  (random-hhmmss)
+  )
 
 (def registry
   {:padded-digits #'random-padded-int
    :random-yyyyMMdd #'random-yyyyMMdd
    :random-integer #'rand-int
-   :random-yyyy #'random-yyyy})
+   :random-yyyy #'random-yyyy
+   :random-character #'random-character
+   :random-hhmmss #'random-hhmmss})
 
 ;; TODO some search terms need the query parameter "&sp=CAISAhAB" to sort by upload date. How to do?
 (def forgotten-videos
@@ -70,7 +85,18 @@
    ["DJI " [:padded-digits 2000]]
    ["HNI 0" [:padded-digits 100]]
    ["WA0" [:padded-digits 999]]
-   ["MOL0" [:padded-digits 100]]])
+   ["MOL0" [:random-character "ABCDEF"]  [:random-integer 9]]
+   ["MOL0" [:padded-digits 99]]
+   [[:random-hhmmss]]
+   ["P100" [:padded-digits 1999]]
+   ["VTS " [:padded-digits 99] " " [:random-integer 9]]
+   ["VTS " [:padded-digits 999] " 1"]
+   ["VTS 01 " [:padded-digits 999]]
+   ["\"My Slideshow Video\""]
+   ["\"My Slideshow\""]
+   ["\"My Slideshow " [:padded-digits 99] "\""]
+
+   ])
 
 (def new-videos
   [["IMG"]
@@ -132,4 +158,6 @@
 
 (comment
   (random-search-query)
+
+  (generate-string ["MOL0" [:random-character "ABCDEF"]  [:random-integer 9]])
   )
