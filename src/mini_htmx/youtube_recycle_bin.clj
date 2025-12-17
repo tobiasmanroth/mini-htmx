@@ -15,6 +15,7 @@
 (def registry
   {:padded-digits #'random-padded-int})
 
+;; TODO some search terms need the query parameter "&sp=CAISAhAB" to sort by upload date. How to do?
 (def forgotten-videos
   [["IMG " [:padded-digits 999]]
    ["MVI " [:padded-digits 999]]
@@ -49,6 +50,11 @@
                (apply (registry (first f))
                       (rest f))))
            fmt)))
+
+(defn random-search-query
+  []
+  (generate-string (rand-nth forgotten-videos))
+  )
 
 (comment
   (let [fmt (rand-nth forgotten-videos)]
