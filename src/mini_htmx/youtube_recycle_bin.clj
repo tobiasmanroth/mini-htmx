@@ -67,7 +67,6 @@
    :random-character #'random-character
    :random-hhmmss #'random-hhmmss})
 
-;; TODO some search terms need the query parameter "&sp=CAISAhAB" to sort by upload date. How to do?
 (def forgotten-videos
   [["IMG " [:padded-digits 9999]]
    ["MVI " [:padded-digits 9999]]
@@ -109,6 +108,11 @@
    ["WhatsApp Video " [:random-yyyyMMdd {:format "yyyy MM dd"
                                          :start-year 2015}]]
    ["Desktop " [:random-yyyyMMdd {:format "yyyy MM dd"}]]
+
+   ["Video" [:padded-digits 9999]]
+   ["Trim 4" [:padded-digits 999]]
+   ["M2U0" [:padded-digits 9999]]
+   ["AVSEQ" [:padded-digits 99]]
    ])
 
 (comment
@@ -119,6 +123,7 @@
     forgotten-videos)
   )
 
+;; TODO some search terms need the query parameter "&sp=CAISAhAB" to sort by upload date. How to do?
 (def new-videos
   [["IMG"]
    ["MVI"]
