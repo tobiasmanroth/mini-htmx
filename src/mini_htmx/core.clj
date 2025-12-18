@@ -2,11 +2,9 @@
   (:require [org.httpkit.server :as http]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [hiccup2.core :as h]
-            [hiccup.page :refer [html5]]
             [nrepl.server :as nrepl]
-            [mini-htmx.youtube-recycle-bin]))
-
-(def counter (atom 0))
+            [mini-htmx.youtube-recycle-bin])
+  (:gen-class))
 
 (defn layout [title & body]
   (str (h/html
