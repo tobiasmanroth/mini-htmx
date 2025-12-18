@@ -5,7 +5,7 @@
   (count (str (Math/abs n))))
 
 (defn random-padded-int
-  "exclusive"
+  "inclusive max"
   ([min max]
    (format (str "%0" (digit-count max) "d")
            (+ min (rand-int (- (inc max) min)))))
@@ -13,21 +13,22 @@
    (random-padded-int 0 max)))
 
 (defn random-yyyyMMdd
-  [{:keys [format start-year]
+  [{:keys [format start-year end-year]
     :or {format "yyyyMMdd"}}]
   (let [youtube-founded (java.time.LocalDate/of 2005 2 14)
         start-date (if start-year
                      (java.time.LocalDate/of start-year 1 1)
                      youtube-founded)
-        today (java.time.LocalDate/now)
-        days-between (.between java.time.temporal.ChronoUnit/DAYS start-date today)
+        end-date (or (when end-year (java.time.LocalDate/of end-year 12 31))
+                     (java.time.LocalDate/now))
+        days-between (.between java.time.temporal.ChronoUnit/DAYS start-date end-date)
         random-days (rand-int (inc days-between))
         random-date (.plusDays start-date random-days)
         formatter (java.time.format.DateTimeFormatter/ofPattern format)]
     (.format random-date formatter)))
 
 (comment
-  (random-ymd)
+  (random-yyyyMMdd {:format "MMMM dd, yyyy"})
   )
 
 (defn random-yyyy
@@ -59,13 +60,30 @@
   (random-hhmmss)
   )
 
+(defn random-padded-hex
+  "Generates a random hex number up to the max defined by the input string.
+   For example, (random-hex \"FFF\") returns a random hex string from \"000\" to \"FFF\"."
+  [max-hex-str]
+  (let [max-value (Integer/parseInt max-hex-str 16)
+        random-value (rand-int (inc max-value))
+        padding (count max-hex-str)
+        format-str (str "%0" padding "X")]
+    (format format-str random-value)))
+
+(comment
+  (random-padded-hex "FFF")
+  (random-padded-hex "FF")
+  (random-padded-hex "FFFF")
+  )
+
 (def registry
   {:padded-digits #'random-padded-int
    :random-yyyyMMdd #'random-yyyyMMdd
    :random-integer #'rand-int
    :random-yyyy #'random-yyyy
    :random-character #'random-character
-   :random-hhmmss #'random-hhmmss})
+   :random-hhmmss #'random-hhmmss
+   :random-padded-hex #'random-padded-hex})
 
 (def forgotten-videos
   [["IMG " [:padded-digits 9999]]
@@ -109,11 +127,88 @@
                                          :start-year 2015}]]
    ["Desktop " [:random-yyyyMMdd {:format "yyyy MM dd"}]]
 
+
+   ["VID0" [:padded-digits 10]]
+   ["MOV000" [:padded-digits 10]]
    ["Video" [:padded-digits 9999]]
-   ["Trim 4" [:padded-digits 999]]
+   ["Trim 4" [:random-padded-hex "FFF"]]
    ["M2U0" [:padded-digits 9999]]
    ["AVSEQ" [:padded-digits 99]]
+   ["MAH0" [:padded-digits 9999]]
+
+
+
+
+   ["WA VID " [:random-yyyyMMdd {:start-year 2018
+                                 :end-year 2023}]]
+   ["XRecorder " [:random-yyyyMMdd {:format "ddMMyyyy"
+                                    :start-year 2021
+                                    :end-year 2024}]]
+   ["CODWAWMP " [:random-yyyyMMdd {:format "yyyy MM dd"
+                                   :start-year 2008
+                                   :end-year 2023}]]
+   ["Hl2 " [:random-yyyyMMdd {:format "yyyy MM dd"
+                              :start-year 2008
+                              :end-year 2023}]]
+   ["Grand Theft Auto 5 " [:random-yyyyMMdd {:format "yyyy MM dd"
+                                             :start-year 2008}]]
+
+   ["Javaw " [:random-yyyyMMdd {:format "yyyy MM dd"
+                                :start-year 2009}]]
+   ["Chrome " [:random-yyyyMMdd {:format "yyyy MM dd"
+                                 :start-year 2010}]]
+   ["Bandicam " [:random-yyyyMMdd {:format "yyyy MM dd"
+                                   :start-year 2010}]]
+   ["YouCut " [:random-yyyyMMdd {:start-year 2012}]]
+   ["Km " [:random-yyyyMMdd {:start-year 2021}]]
+   ["Simplescreenrecorder " [:random-yyyyMMdd {:format "yyyy MM dd"
+                                               :start-year 2023}]]
+   ["720p " [:random-yyyyMMdd {:format "yyMMdd"
+                               :start-year 2023}]]
+   ["XRecorder " [:random-yyyyMMdd {:start-year 2024}]]
    ])
+
+(comment
+  (generate-string ["Km " [:random-yyyyMMdd {:start-year 2021}]])
+
+  )
+
+(def low-views-2006-2008
+  [["\"You have new picture mail! (video)\""]
+   ["\"Media1.3gp\""]
+   ["\"Media1.3g2\""]
+   ["\"Video.3g2\""]
+   ["\"New Multimedia Message\""]
+   ["\"Multimedia Message\""]
+   ["\"Video from my phone\""]
+   ["\"Video uploaded from my mobile phone\""]
+   ["\"For " [:random-yyyyMMdd {:format "MMMM dd, yyyy"
+                                :start-year 2006
+                                :end-year 2008}] "\""]
+   ["\"Recorded on " [:random-yyyyMMdd {:format "MMMM dd, yyyy"
+                                        :start-year 2006
+                                        :end-year 2008}]
+    " using a Flip Video Camcorder\""]
+   ["Video0" [:padded-digits 10]]
+   ["Vid0" [:padded-digits 10]]
+   ["MOV000" [:padded-digits 10]]
+   ["\"Recorded on " [:random-yyyyMMdd {:format "MMMM dd, yyyy"
+                                        :start-year 2006
+                                        :end-year 2008}]
+    " using a Flip Video Camera\""]
+   ["\"Created on " [:random-yyyyMMdd {:format "MMMM dd, yyyy"
+                                       :start-year 2006
+                                       :end-year 2008}]
+    " using FlipShare\""]
+   ["\"Video van Mijn telefoon\""]
+   ["\"video geüpload van mijn mobiel\""]
+   ["\"Vídeo desde mi teléfono\""]
+   ["\"vídeo subido desde mi teléfono móvil\""]
+   ["muuvee00" [:padded-digits 40]]
+   ["0_VIDEO_0" [:padded-digits 54]]
+   ["\"You have received a new message\""]
+   ["\"“My Great Movie”\""]
+   ["\"My First Project\""]])
 
 (comment
   (map
@@ -121,6 +216,12 @@
       (println f)
       (generate-string f))
     forgotten-videos)
+
+  (map
+    (fn [f]
+      (println f)
+      (generate-string f))
+    low-views-2006-2008)
   )
 
 ;; TODO some search terms need the query parameter "&sp=CAISAhAB" to sort by upload date. How to do?
@@ -185,5 +286,5 @@
 (comment
   (random-forgotten-search-query)
 
-  (generate-string ["Desktop " [:random-yyyyMMdd {:format "yyyy MM dd"}]])
+  (generate-string ["Recorded on" [:random-yyyyMMdd {:format "MMMM dd, yyyy"}] "using a Flip Video Camera"])
   )
