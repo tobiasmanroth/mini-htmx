@@ -1,10 +1,12 @@
 (ns mini-htmx.core
   (:require [org.httpkit.server :as http]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
+            [ring.util.codec]
             [hiccup2.core :as h]
             [nrepl.server :as nrepl]
             [clojure.string]
-            [mini-htmx.youtube-recycle-bin])
+            [mini-htmx.youtube-recycle-bin]
+            [clojure.data.json :as json])
   (:gen-class))
 
 (defn layout [title & body]
@@ -76,21 +78,80 @@
 
 (defn forgotten-youtube-link-handler [request]
   (let [search-query (mini-htmx.youtube-recycle-bin/random-forgotten-search-query)
-        link (str "https://youtube.com/results?search_query=" search-query)]
+        encoded-query (java.net.URLEncoder/encode search-query "UTF-8")
+        link (str "https://youtube.com/results?search_query=" encoded-query)]
     {:status 200
      :headers {"Content-Type" "text/html"}
      :body (str (h/html [:a {:href link
                              :target "_blank"} link]))}))
 
+(defn formatter-to-label
+  "Converts a formatter to a display label with placeholders"
+  [formatter]
+  (apply str
+         (map (fn [item]
+                (cond
+                  (string? item)
+                  item
+
+                  (vector? item)
+                  (let [[func-name params] item]
+                    (case func-name
+                      :padded-digits (apply str
+                                            (repeat (count (str params)) "#"))
+                      :random-yyyyMMdd (or (:format params)
+                                           "yyyyMMdd")
+                      :random-integer (apply str
+                                             (repeat (count (str params)) "#"))
+                      :random-yyyy "yyyy"
+                      :random-character "X"
+                      :random-hhmmss "HHMMSS"
+                      :random-padded-hex (apply str
+                                                (repeat (count (str params)) "F"))
+                      "?"))))
+              formatter)))
+
+(defn convert-formatter-keywords
+  "Converts string function names to keywords in formatter data structure"
+  [formatter]
+  (mapv (fn [item]
+          (if (vector? item)
+            (let [func-name (first item)]
+              (if (string? func-name)
+                (vec (cons (keyword func-name) (rest item)))
+                item))
+            item))
+        formatter))
+
+(defn fortune-wheel-spin-handler [request]
+  (let [body (slurp (:body request))
+        params (json/read-str body :key-fn keyword)
+        formatters (:formatters params)
+        random-index (rand-int (count formatters))
+        formatter-raw (nth formatters random-index)
+        ;; Convert string function names back to keywords
+        formatter (convert-formatter-keywords formatter-raw)
+        search-query (mini-htmx.youtube-recycle-bin/generate-string formatter)
+        encoded-query (java.net.URLEncoder/encode search-query "UTF-8")
+        link (str "https://youtube.com/results?search_query=" encoded-query)]
+    {:status 200
+     :headers {"Content-Type" "application/json"}
+     :body (json/write-str {:index random-index
+                            :link link})}))
+
 (defn fortune-wheel-page []
-  (let [items (take 10 (shuffle mini-htmx.youtube-recycle-bin/forgotten-videos))
-        labels (map mini-htmx.youtube-recycle-bin/generate-string items)
-        js-array (str "[" (clojure.string/join ", " (map #(str "\"" (clojure.string/escape % {\" "\\\"" \\ "\\\\"}) "\"") labels)) "]")]
+  (let [items (vec (take 10 (shuffle mini-htmx.youtube-recycle-bin/forgotten-videos)))
+        ;; Generate descriptive labels for display on the wheel
+        labels (map formatter-to-label items)
+        ;; Convert both labels and formatters to JSON for JavaScript
+        labels-json (json/write-str labels)
+        formatters-json (json/write-str items)]
     (layout "Fortune Wheel - Forgotten Videos"
             [:script
              (h/raw (str "
 window.onload = () => {
-  const items = " js-array ";
+  const labels = " labels-json ";
+  const formatters = " formatters-json ";
   const container = document.getElementById('wheel-container');
 
   if (!container) {
@@ -99,30 +160,40 @@ window.onload = () => {
   }
 
   window.wheel = new spinWheel.Wheel(container, {
-    items: items.map(label => ({label: label})),
+    items: labels.map(label => ({label: label})),
     itemBackgroundColors: ['#c7160c', '#fff95b', '#2195f2', '#4caf50', '#ff9800', '#9c27b0'],
     borderWidth: 5,
     borderColor: '#000',
   });
 
   window.spinWheel = function() {
-    const randomIndex = Math.floor(Math.random() * items.length);
-    const selectedItem = items[randomIndex];
-
     // Clear previous result
     document.getElementById('result').textContent = '';
 
-    // Spin the wheel
-    wheel.spinToItem(randomIndex, 3000, true, 2, 1);
+    // Ask server to randomly select a formatter
+    fetch('/fortune-wheel-spin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({formatters: formatters})
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Spin the wheel to the server-selected index
+      wheel.spinToItem(data.index, 3000, true, 2, 1);
 
-    // Show result after 3 seconds
-    setTimeout(function() {
-      var element = document.getElementById('result');
-      var encodedQuery = encodeURIComponent(selectedItem);
-      var url = 'https://youtube.com/results?search_query=' + encodedQuery;
-      element.textContent = url;
-      element.href = url;
-    }, 3000);
+      // After spinning completes, display the result
+      setTimeout(function() {
+        const resultElement = document.getElementById('result');
+        resultElement.href = data.link;
+        resultElement.textContent = data.link;
+      }, 3000);
+    })
+    .catch(error => {
+      console.error('Error spinning wheel:', error);
+      document.getElementById('result').textContent = 'Error: ' + error.message;
+    });
   };
 }"
                          ))]
@@ -157,6 +228,9 @@ window.onload = () => {
       {:status 200
        :headers {"Content-Type" "text/html"}
        :body (fortune-wheel-page)}
+
+      (and (= uri "/fortune-wheel-spin") (= method :post))
+      (fortune-wheel-spin-handler request)
 
       :else
       {:status 404
