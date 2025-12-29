@@ -86,92 +86,125 @@
    :random-padded-hex #'random-padded-hex})
 
 (def forgotten-videos
-  [["IMG " [:padded-digits 9999]]
-   ["MVI " [:padded-digits 9999]]
-   ["MOV " [:padded-digits 9999]]
-   ["100 " [:padded-digits 9999]]
-   ["SAM " [:padded-digits 9999]]
-   ["DSC " [:padded-digits 9999]]
-   ["SDV " [:padded-digits 9999]]
-   ["DSCF" [:padded-digits 9999]]
-   ["DSCN" [:padded-digits 9999]]
-   ["PICT" [:padded-digits 9999]]
-   ["MAQ0" [:padded-digits 9999]]
-   ["FILE" [:padded-digits 9999]]
-   ["GOPR" [:padded-digits 9999]]
-   ["GP01" [:padded-digits 9999]]
-   ["GX01" [:padded-digits 9999]]
-   ["DJI " [:padded-digits 2000]]
-   ["HNI 0" [:padded-digits 100]]
-   ["WA0" [:padded-digits 999]]
-   ["MOL0" [:random-character "ABCDEF"]  [:random-integer 9]]
-   ["MOL0" [:padded-digits 99]]
-   [[:random-hhmmss]]
-   ["P100" [:padded-digits 1999]]
-   ["VTS " [:padded-digits 99] " " [:random-integer 9]]
-   ["VTS " [:padded-digits 999] " 1"]
-   ["VTS 01 " [:padded-digits 999]]
-   ["\"My Slideshow Video\""]
-   ["\"My Slideshow\""]
-   ["\"My Slideshow " [:padded-digits 99] "\""]
-   ["\"My Stupeflix Video\""]
-   ["\"My Stupeflix Video " [:padded-digits 9999] "\""]
-   [[:random-yyyyMMdd {}]]
-   ["WIN " [:random-yyyyMMdd {:start-year 2013}]]
-   ["VID " [:random-yyyyMMdd {:start-year 2008}]]
-   ["Capture " [:random-yyyyMMdd {:start-year 2008}]]
-   ["InShot " [:random-yyyyMMdd {:start-year 2016}]]
-   ["PXL " [:random-yyyyMMdd {:start-year 2020}]]
-   ["AUD-" [:random-yyyyMMdd {:start-year 2017}]]
-   ["WhatsApp Video " [:random-yyyyMMdd {:format "yyyy MM dd"
-                                         :start-year 2015}]]
-   ["Desktop " [:random-yyyyMMdd {:format "yyyy MM dd"}]]
-
-
-   ["VID0" [:padded-digits 10]]
-   ["MOV000" [:padded-digits 10]]
-   ["Video" [:padded-digits 9999]]
-   ["Trim 4" [:random-padded-hex "FFF"]]
-   ["M2U0" [:padded-digits 9999]]
-   ["AVSEQ" [:padded-digits 99]]
-   ["MAH0" [:padded-digits 9999]]
-
-
-
-
-   ["WA VID " [:random-yyyyMMdd {:start-year 2018
-                                 :end-year 2023}]]
-   ["XRecorder " [:random-yyyyMMdd {:format "ddMMyyyy"
-                                    :start-year 2021
-                                    :end-year 2024}]]
-   ["CODWAWMP " [:random-yyyyMMdd {:format "yyyy MM dd"
-                                   :start-year 2008
-                                   :end-year 2023}]]
-   ["Hl2 " [:random-yyyyMMdd {:format "yyyy MM dd"
-                              :start-year 2008
-                              :end-year 2023}]]
-   ["Grand Theft Auto 5 " [:random-yyyyMMdd {:format "yyyy MM dd"
-                                             :start-year 2008}]]
-
-   ["Javaw " [:random-yyyyMMdd {:format "yyyy MM dd"
-                                :start-year 2009}]]
-   ["Chrome " [:random-yyyyMMdd {:format "yyyy MM dd"
-                                 :start-year 2010}]]
-   ["Bandicam " [:random-yyyyMMdd {:format "yyyy MM dd"
-                                   :start-year 2010}]]
-   ["YouCut " [:random-yyyyMMdd {:start-year 2012}]]
-   ["Km " [:random-yyyyMMdd {:start-year 2021}]]
-   ["Simplescreenrecorder " [:random-yyyyMMdd {:format "yyyy MM dd"
-                                               :start-year 2023}]]
-   ["720p " [:random-yyyyMMdd {:format "yyMMdd"
-                               :start-year 2023}]]
-   ["XRecorder " [:random-yyyyMMdd {:start-year 2024}]]
-   ])
-
-(comment
-  (generate-string ["Km " [:random-yyyyMMdd {:start-year 2021}]])
-
-  )
+  #{{:format-fn ["DJI " [:padded-digits 2000]]
+     :format-string "DJI ####"}
+    {:format-fn ["Capture " [:random-yyyyMMdd {:start-year 2008}]]
+     :format-string "Capture yyyyMMdd"}
+    {:format-fn ["PICT" [:padded-digits 9999]]
+     :format-string "PICT####"}
+    {:format-fn ["PXL " [:random-yyyyMMdd {:start-year 2020}]]
+     :format-string "PXL yyyyMMdd"}
+    {:format-fn ["WIN " [:random-yyyyMMdd {:start-year 2013}]]
+     :format-string "WIN yyyyMMdd"}
+    {:format-fn ["AVSEQ" [:padded-digits 99]]
+     :format-string "AVSEQ##"}
+    {:format-fn ["MVI " [:padded-digits 9999]]
+     :format-string "MVI ####"}
+    {:format-fn ["Desktop " [:random-yyyyMMdd {:format "yyyy MM dd"}]]
+     :format-string "Desktop yyyy MM dd"}
+    {:format-fn ["\"My Stupeflix Video\""]
+     :format-string "\"My Stupeflix Video\""}
+    {:format-fn ["YouCut " [:random-yyyyMMdd {:start-year 2012}]]
+     :format-string "YouCut yyyyMMdd"}
+    {:format-fn ["Video" [:padded-digits 9999]]
+     :format-string "Video####"}
+    {:format-fn [[:random-hhmmss]]
+     :format-string "HHMMSS"}
+    {:format-fn ["GX01" [:padded-digits 9999]]
+     :format-string "GX01####"}
+    {:format-fn ["GP01" [:padded-digits 9999]]
+     :format-string "GP01####"}
+    {:format-fn ["IMG " [:padded-digits 9999]]
+     :format-string "IMG ####"}
+    {:format-fn ["WA0" [:padded-digits 999]]
+     :format-string "WA0###"}
+    {:format-fn ["VTS " [:padded-digits 99] " " [:random-integer 9]]
+     :format-string "VTS ## #"}
+    {:format-fn ["720p " [:random-yyyyMMdd {:format "yyMMdd", :start-year 2023}]]
+     :format-string "720p yyMMdd"}
+    {:format-fn ["Javaw " [:random-yyyyMMdd {:format "yyyy MM dd", :start-year 2009}]]
+     :format-string "Javaw yyyy MM dd"}
+    {:format-fn ["\"My Stupeflix Video " [:padded-digits 9999] "\""]
+     :format-string "\"My Stupeflix Video ####\""}
+    {:format-fn ["SAM " [:padded-digits 9999]]
+     :format-string "SAM ####"}
+    {:format-fn ["MAQ0" [:padded-digits 9999]]
+     :format-string "MAQ0####"}
+    {:format-fn ["FILE" [:padded-digits 9999]]
+     :format-string "FILE####"}
+    {:format-fn ["Chrome " [:random-yyyyMMdd {:format "yyyy MM dd", :start-year 2010}]],
+     :format-string "Chrome yyyy MM dd"}
+    {:format-fn ["GOPR" [:padded-digits 9999]]
+     :format-string "GOPR####"}
+    {:format-fn ["Bandicam " [:random-yyyyMMdd {:format "yyyy MM dd"
+                                                :start-year 2010}]]
+     :format-string "Bandicam yyyy MM dd"}
+    {:format-fn ["MOL0" [:padded-digits 99]]
+     :format-string "MOL0##"}
+    {:format-fn ["HNI 0" [:padded-digits 100]]
+     :format-string "HNI 0###"}
+    {:format-fn ["DSCN" [:padded-digits 9999]]
+     :format-string "DSCN####"}
+    {:format-fn ["VID0" [:padded-digits 10]]
+     :format-string "VID0##"}
+    {:format-fn ["M2U0" [:padded-digits 9999]]
+     :format-string "M2U0####"}
+    {:format-fn ["InShot " [:random-yyyyMMdd {:start-year 2016}]]
+     :format-string "InShot yyyyMMdd"}
+    {:format-fn ["XRecorder " [:random-yyyyMMdd {:format "ddMMyyyy", :start-year 2021, :end-year 2024}]]
+     :format-string "XRecorder ddMMyyyy"}
+    {:format-fn ["Km " [:random-yyyyMMdd {:start-year 2021}]]
+     :format-string "Km yyyyMMdd"}
+    {:format-fn ["Simplescreenrecorder " [:random-yyyyMMdd {:format "yyyy MM dd", :start-year 2023}]]
+     :format-string "Simplescreenrecorder yyyy MM dd"}
+    {:format-fn ["Trim 4" [:random-padded-hex "FFF"]]
+     :format-string "Trim 4FFF"}
+    {:format-fn ["DSCF" [:padded-digits 9999]]
+     :format-string "DSCF####"}
+    {:format-fn ["MAH0" [:padded-digits 9999]]
+     :format-string "MAH0####"}
+    {:format-fn ["VID " [:random-yyyyMMdd {:start-year 2008}]]
+     :format-string "VID yyyyMMdd"}
+    {:format-fn ["P100" [:padded-digits 1999]]
+     :format-string "P100####"}
+    {:format-fn ["CODWAWMP " [:random-yyyyMMdd {:format "yyyy MM dd", :start-year 2008, :end-year 2023}]]
+     :format-string "CODWAWMP yyyy MM dd"}
+    {:format-fn ["SDV " [:padded-digits 9999]]
+     :format-string "SDV ####"}
+    {:format-fn ["WhatsApp Video " [:random-yyyyMMdd {:format "yyyy MM dd", :start-year 2015}]],
+     :format-string "WhatsApp Video yyyy MM dd"}
+    {:format-fn ["Grand Theft Auto 5 " [:random-yyyyMMdd {:format "yyyy MM dd", :start-year 2008}]],
+     :format-string "Grand Theft Auto 5 yyyy MM dd"}
+    {:format-fn ["Hl2 " [:random-yyyyMMdd {:format "yyyy MM dd", :start-year 2008, :end-year 2023}]],
+     :format-string "Hl2 yyyy MM dd"}
+    {:format-fn ["DSC " [:padded-digits 9999]]
+     :format-string "DSC ####"}
+    {:format-fn ["WA VID " [:random-yyyyMMdd {:start-year 2018, :end-year 2023}]]
+     :format-string "WA VID yyyyMMdd"}
+    {:format-fn ["MOL0" [:random-character "ABCDEF"] [:random-integer 9]]
+     :format-string "MOL0X#"}
+    {:format-fn ["VTS 01 " [:padded-digits 999]]
+     :format-string "VTS 01 ###"}
+    {:format-fn ["AUD-" [:random-yyyyMMdd {:start-year 2017}]]
+     :format-string "AUD-yyyyMMdd"}
+    {:format-fn ["VTS " [:padded-digits 999] " 1"]
+     :format-string "VTS ### 1"}
+    {:format-fn ["MOV " [:padded-digits 9999]]
+     :format-string "MOV ####"}
+    {:format-fn ["100 " [:padded-digits 9999]]
+     :format-string "100 ####"}
+    {:format-fn [[:random-yyyyMMdd {}]]
+     :format-string "yyyyMMdd"}
+    {:format-fn ["\"My Slideshow " [:padded-digits 99] "\""]
+     :format-string "\"My Slideshow ##\""}
+    {:format-fn ["MOV000" [:padded-digits 10]]
+     :format-string "MOV000##"}
+    {:format-fn ["\"My Slideshow Video\""]
+     :format-string "\"My Slideshow Video\""}
+    {:format-fn ["\"My Slideshow\""]
+     :format-string "\"My Slideshow\""}
+    {:format-fn ["XRecorder " [:random-yyyyMMdd {:start-year 2024}]]
+     :format-string "XRecorder yyyyMMdd"}})
 
 (def low-views-2006-2008
   [["\"You have new picture mail! (video)\""]
@@ -212,9 +245,9 @@
 
 (comment
   (map
-    (fn [f]
-      (println f)
-      (generate-string f))
+    (fn [{:keys [format-fn format-string]}]
+      (println format-fn)
+      (generate-string format-fn))
     forgotten-videos)
 
   (map
@@ -280,7 +313,7 @@
 
 (defn random-forgotten-search-query
   []
-  (generate-string (rand-nth forgotten-videos))
+  (generate-string (:format-fn (rand-nth (vec forgotten-videos))))
   )
 
 (comment

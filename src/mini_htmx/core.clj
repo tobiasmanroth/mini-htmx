@@ -22,6 +22,9 @@
            ;; HTMX
            [:script {:src "https://unpkg.com/htmx.org@2.0.4"}]
            [:script {:src "https://cdn.jsdelivr.net/npm/spin-wheel@5.0.2/dist/spin-wheel-iife.js"}]
+           [:script {:src "//unpkg.com/alpinejs"
+                     :defer "true"}]
+
            [:style "
               #wheel-wrapper {
                 position: relative;
@@ -85,32 +88,6 @@
      :body (str (h/html [:a {:href link
                              :target "_blank"} link]))}))
 
-(defn formatter-to-label
-  "Converts a formatter to a display label with placeholders"
-  [formatter]
-  (apply str
-         (map (fn [item]
-                (cond
-                  (string? item)
-                  item
-
-                  (vector? item)
-                  (let [[func-name params] item]
-                    (case func-name
-                      :padded-digits (apply str
-                                            (repeat (count (str params)) "#"))
-                      :random-yyyyMMdd (or (:format params)
-                                           "yyyyMMdd")
-                      :random-integer (apply str
-                                             (repeat (count (str params)) "#"))
-                      :random-yyyy "yyyy"
-                      :random-character "X"
-                      :random-hhmmss "HHMMSS"
-                      :random-padded-hex (apply str
-                                                (repeat (count (str params)) "F"))
-                      "?"))))
-              formatter)))
-
 (defn convert-formatter-keywords
   "Converts string function names to keywords in formatter data structure"
   [formatter]
@@ -126,90 +103,101 @@
 (defn fortune-wheel-spin-handler [request]
   (let [body (slurp (:body request))
         params (json/read-str body :key-fn keyword)
-        formatters (:formatters params)
-        random-index (rand-int (count formatters))
-        formatter-raw (nth formatters random-index)
+        formatter (:formatter params)
         ;; Convert string function names back to keywords
-        formatter (convert-formatter-keywords formatter-raw)
+        formatter (convert-formatter-keywords formatter)
         search-query (mini-htmx.youtube-recycle-bin/generate-string formatter)
         encoded-query (java.net.URLEncoder/encode search-query "UTF-8")
         link (str "https://youtube.com/results?search_query=" encoded-query)]
     {:status 200
      :headers {"Content-Type" "application/json"}
-     :body (json/write-str {:index random-index
-                            :link link})}))
+     :body (json/write-str {:link link})}))
 
 (defn fortune-wheel-page []
   (let [items (vec (take 10 (shuffle mini-htmx.youtube-recycle-bin/forgotten-videos)))
-        ;; Generate descriptive labels for display on the wheel
-        labels (map formatter-to-label items)
-        ;; Convert both labels and formatters to JSON for JavaScript
-        labels-json (json/write-str labels)
-        formatters-json (json/write-str items)]
+        ;; Convert items to JSON with both format strings and formatters
+        items-json (json/write-str (mapv (fn [item]
+                                           {:formatString (:format-string item)
+                                            :formatter (:format-fn item)})
+                                         items))]
     (layout "Fortune Wheel - Forgotten Videos"
-            [:script
-             (h/raw (str "
-window.onload = () => {
-  const labels = " labels-json ";
-  const formatters = " formatters-json ";
-  const container = document.getElementById('wheel-container');
+            [:article {:x-data (str "{
+                items: " items-json ",
+                wheel: null,
+                resultLink: '',
+                isSpinning: false,
 
-  if (!container) {
-    console.error('Wheel container not found!');
-    return;
-  }
+                init() {
+                  this.$nextTick(() => {
+                    const container = this.$refs.wheelContainer;
+                    if (!container) {
+                      console.error('Wheel container not found!');
+                      return;
+                    }
 
-  window.wheel = new spinWheel.Wheel(container, {
-    items: labels.map(label => ({label: label})),
-    itemBackgroundColors: ['#c7160c', '#fff95b', '#2195f2', '#4caf50', '#ff9800', '#9c27b0'],
-    borderWidth: 5,
-    borderColor: '#000',
-  });
+                    this.wheel = new spinWheel.Wheel(container, {
+                      isInteractive: false,
+                      items: this.items.map(item => ({label: item.formatString})),
+                      itemBackgroundColors: ['#c7160c', '#fff95b', '#2195f2', '#4caf50', '#ff9800', '#9c27b0'],
+                      borderWidth: 5,
+                      borderColor: '#000',
+                    });
+                  });
+                },
 
-  window.spinWheel = function() {
-    // Clear previous result
-    document.getElementById('result').textContent = '';
+                async spinWheel() {
+                  if (this.isSpinning) return;
 
-    // Ask server to randomly select a formatter
-    fetch('/fortune-wheel-spin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({formatters: formatters})
-    })
-    .then(response => response.json())
-    .then(data => {
-      // Spin the wheel to the server-selected index
-      wheel.spinToItem(data.index, 3000, true, 2, 1);
+                  this.isSpinning = true;
+                  this.resultLink = '';
 
-      // After spinning completes, display the result
-      setTimeout(function() {
-        const resultElement = document.getElementById('result');
-        resultElement.href = data.link;
-        resultElement.textContent = data.link;
-      }, 3000);
-    })
-    .catch(error => {
-      console.error('Error spinning wheel:', error);
-      document.getElementById('result').textContent = 'Error: ' + error.message;
-    });
-  };
-}"
-                         ))]
-            [:article
+                  // Client-side random selection
+                  const randomIndex = Math.floor(Math.random() * this.items.length);
+                  const selectedItem = this.items[randomIndex];
+
+                  // Spin the wheel to the client-selected index
+                  this.wheel.spinToItem(randomIndex, 3000, true, 2, 1);
+
+                  try {
+                    // Ask server to generate link for the selected formatter
+                    const response = await fetch('/fortune-wheel-spin', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({formatter: selectedItem.formatter})
+                    });
+
+                    const data = await response.json();
+
+                    // After spinning completes, display the result
+                    setTimeout(() => {
+                      this.resultLink = data.link;
+                      this.isSpinning = false;
+                    }, 3000);
+                  } catch (error) {
+                    console.error('Error spinning wheel:', error);
+                    this.resultLink = 'Error: ' + error.message;
+                    this.isSpinning = false;
+                  }
+                }
+              }")}
              [:h1 "Fortune Wheel"]
              [:p "Spin the wheel to discover a random forgotten video search query!"]
              [:div {:id "wheel-wrapper"}
               [:div {:class "wheel-pointer"}]
-              [:div {:id "wheel-container"}]]
+              [:div {:x-ref "wheelContainer"
+                     :id "wheel-container"}]]
              [:div {:style "text-align: center;"}
-              [:button {:id "spin-button" :onclick "spinWheel()"}
+              [:button {:x-on:click "spinWheel()"
+                        :x-bind:disabled "isSpinning"}
                "Spin the Wheel!"]
               [:br]
-              [:a {:id "result"
-                   :target "_blank"
-                   :role "status"}]]]
+              [:br]
+              [:a {:x-ref "result"
+                   :x-bind:href "resultLink"
+                   :x-text "resultLink"
+                   :target "_blank"}]]]
             )))
 
 (defn routes [request]
