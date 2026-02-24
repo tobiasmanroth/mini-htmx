@@ -9,7 +9,7 @@
   (:gen-class))
 
 (defn index-page []
-  (layout "Mini HTMX App"
+  (layout "No Views"
           [:h1 "Welcome to no-views.com"]
           [:p "Someone uploaded a video. Nobody watched it. Until now. Maybe."]
           [:p "This page digs up YouTube videos with zero or near-zero views "

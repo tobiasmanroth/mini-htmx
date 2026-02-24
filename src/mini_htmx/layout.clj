@@ -8,6 +8,8 @@
            [:meta {:charset "UTF-8"}]
            [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
            [:title title]
+           [:link {:rel "icon" :type "image/svg+xml"
+                   :href "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='2' y='10' width='60' height='44' rx='12' fill='%23FF0000'/><text x='32' y='40' font-family='Arial,sans-serif' font-weight='bold' font-size='26' fill='white' text-anchor='middle'>nv</text></svg>"}]
            ;; PicoCSS
            [:link {:rel "stylesheet"
                    :href "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"}]
