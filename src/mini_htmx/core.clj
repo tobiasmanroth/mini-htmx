@@ -65,10 +65,11 @@
             videos (if f-set
                      (vec (filter #(f-set (:format-string %))
                                   mini-htmx.youtube-recycle-bin/forgotten-videos))
-                     (vec (take 10 (shuffle mini-htmx.youtube-recycle-bin/forgotten-videos))))]
+                     (vec (take 10 (shuffle mini-htmx.youtube-recycle-bin/forgotten-videos))))
+            color-name (get-in request [:params :colors] "classic")]
         {:status 200
          :headers {"Content-Type" "text/html"}
-         :body (fortune-wheel/page videos)})
+         :body (fortune-wheel/page videos color-name)})
 
       (and (= uri "/fortune-wheel-spin") (= method :post))
       (fortune-wheel/spin-handler request)
