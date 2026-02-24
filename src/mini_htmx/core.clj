@@ -22,7 +22,7 @@
            ;; HTMX
            [:script {:src "https://unpkg.com/htmx.org@2.0.4"}]
            [:script {:src "https://cdn.jsdelivr.net/npm/spin-wheel@5.0.2/dist/spin-wheel-iife.js"}]
-           [:script {:src "//unpkg.com/alpinejs"
+           [:script {:src "https://unpkg.com/alpinejs@3/dist/cdn.min.js"
                      :defer "true"}]
 
            [:style "
@@ -55,14 +55,14 @@
 
 (defn index-page []
   (layout "Mini HTMX App"
-          [:h1 "Welcome to Mini HTMX!"]
-          [:p "This is a simple Clojure web application using:"]
-          [:ul
-           [:li "http-kit (web server)"]
-           [:li "Ring (request handling)"]
-           [:li "Hiccup (HTML generation)"]
-           [:li "HTMX (dynamic interactions)"]
-           [:li "PicoCSS (styling)"]]
+          [:h1 "Welcome to no-views.com"]
+          [:p "Discover YouTube videos that no one has ever watched. "
+           "We generate search queries that surface videos with zero or near-zero views "
+           "\u2014 hidden treasures buried deep in YouTube's archive. "
+           "It's like a treasure hunt: you never know what forgotten gem you'll find next."]
+          [:p "This is a work in progress \u2014 new features and search modes will appear over time."]
+          [:p "Inspired by " [:a {:href "https://www.youtube.com/@KVNAUST"}
+                               "@KVNAUST"]]
 
 
           [:hr]
@@ -113,9 +113,9 @@
      :headers {"Content-Type" "application/json"}
      :body (json/write-str {:link link})}))
 
-(defn fortune-wheel-page []
-  (let [items (vec (take 10 (shuffle mini-htmx.youtube-recycle-bin/forgotten-videos)))
-        ;; Convert items to JSON with both format strings and formatters
+(defn fortune-wheel-page
+  [items]
+  (let [;; Convert items to JSON with both format strings and formatters
         items-json (json/write-str (mapv (fn [item]
                                            {:formatString (:format-string item)
                                             :formatter (:format-fn item)})
@@ -215,7 +215,7 @@
       (and (= uri "/fortune-wheel") (= method :get))
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (fortune-wheel-page)}
+       :body (fortune-wheel-page (vec (take 10 (shuffle mini-htmx.youtube-recycle-bin/forgotten-videos))))}
 
       (and (= uri "/fortune-wheel-spin") (= method :post))
       (fortune-wheel-spin-handler request)
