@@ -56,15 +56,14 @@
 (defn index-page []
   (layout "Mini HTMX App"
           [:h1 "Welcome to no-views.com"]
-          [:p "Discover YouTube videos that no one has ever watched. "
-           "We generate search queries that surface videos with zero or near-zero views "
-           "\u2014 hidden treasures buried deep in YouTube's archive. "
-           "It's like a treasure hunt: you never know what forgotten gem you'll find next."]
-          [:p "This is a work in progress \u2014 new features and search modes will appear over time."]
+          [:p "Someone uploaded a video. Nobody watched it. Until now. Maybe."]
+          [:p "This page digs up YouTube videos with zero or near-zero views "
+           "- the digital equivalent of finding a message in a bottle, "
+           "except the message is usually a 2009 cat video filmed on a toaster. "
+           "It's a treasure hunt where the treasure is wonderfully questionable."]
+          [:p "Still a work in progress - I keep adding weird new ways to find weird old videos."]
           [:p "Inspired by " [:a {:href "https://www.youtube.com/@KVNAUST"}
                                "@KVNAUST"]]
-
-
           [:hr]
           [:h2 "Find forgotten YouTube videos"]
           [:form {:hx-post "/random-forgotten-youtube-link"
