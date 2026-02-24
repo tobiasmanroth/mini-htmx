@@ -28,12 +28,13 @@
            [:style "
               #wheel-wrapper {
                 position: relative;
-                width: 500px;
+                width: 100%;
+                max-width: 700px;
                 margin: 0 auto;
               }
               #wheel-container {
-                width: 500px;
-                height: 500px;
+                width: 100%;
+                aspect-ratio: 1;
               }
               .wheel-pointer {
                 position: absolute;
@@ -53,6 +54,44 @@
           [:body
            [:main.container body]]])))
 
+(defn fortune-wheel-panel []
+  (let [sorted-videos (sort-by :format-string mini-htmx.youtube-recycle-bin/forgotten-videos)]
+    [:div {:x-data "{ allChecked: false,
+                       toggle() {
+                         this.allChecked = !this.allChecked;
+                         this.$refs.form.querySelectorAll('input[type=checkbox]')
+                           .forEach(cb => cb.checked = this.allChecked);
+                       },
+                       randomTen() {
+                         const cbs = [...this.$refs.form.querySelectorAll('input[type=checkbox]')];
+                         cbs.forEach(cb => cb.checked = false);
+                         const shuffled = cbs.sort(() => Math.random() - 0.5);
+                         shuffled.slice(0, 10).forEach(cb => cb.checked = true);
+                         this.allChecked = false;
+                       },
+                       init() { this.$nextTick(() => this.randomTen()); }
+                     }"}
+     [:form {:method "get" :action "/fortune-wheel" :target "_blank" :x-ref "form"}
+      [:fieldset
+       [:legend "Select formatters to include:"]
+       [:div {:style "display: flex; gap: 0.5rem; margin-bottom: 1rem;"}
+        [:button {:type "button"
+                  :class "outline secondary"
+                  :x-on:click "toggle()"}
+         [:span {:x-text "allChecked ? 'Deselect All' : 'Select All'"}]]
+        [:button {:type "button"
+                  :class "outline secondary"
+                  :x-on:click "randomTen()"}
+         "Random 10"]]
+       [:div {:style "columns: 18rem; column-gap: 2rem;"}
+        (for [video sorted-videos]
+          [:label {:style "display: flex; align-items: center; gap: 0.3rem; margin: 0; white-space: nowrap;"}
+           [:input {:type "checkbox"
+                    :name "f"
+                    :value (:format-string video)}]
+           (:format-string video)])]]
+      [:button {:type "submit"} "Go to Fortune Wheel"]]]))
+
 (defn index-page []
   (layout "Mini HTMX App"
           [:h1 "Welcome to no-views.com"]
@@ -69,13 +108,15 @@
           [:form {:hx-post "/random-forgotten-youtube-link"
                   :hx-target "#random-forgotten-youtube-link"
                   :hx-swap "innerHTML"}
-           [:button {:type "submit" :class "button"} "Generate a random YouTube link"]]
+           [:button
+            {:type "submit" :class "button"}
+            "Generate a random YouTube link"]]
           [:div {:id "random-forgotten-youtube-link"}]
 
           [:hr]
           [:h2 "Fortune Wheel"]
           [:p "Try your luck with the fortune wheel!"]
-          [:a {:href "/fortune-wheel"} [:button "Go to Fortune Wheel"]]))
+          (fortune-wheel-panel)))
 
 
 (defn forgotten-youtube-link-handler [request]
@@ -212,9 +253,18 @@
       (forgotten-youtube-link-handler request)
 
       (and (= uri "/fortune-wheel") (= method :get))
-      {:status 200
-       :headers {"Content-Type" "text/html"}
-       :body (fortune-wheel-page (vec (take 10 (shuffle mini-htmx.youtube-recycle-bin/forgotten-videos))))}
+      (let [f-param (get-in request [:params :f])
+            f-set (cond
+                    (nil? f-param) nil
+                    (string? f-param) #{f-param}
+                    :else (set f-param))
+            videos (if f-set
+                     (vec (filter #(f-set (:format-string %))
+                                  mini-htmx.youtube-recycle-bin/forgotten-videos))
+                     (vec (take 10 (shuffle mini-htmx.youtube-recycle-bin/forgotten-videos))))]
+        {:status 200
+         :headers {"Content-Type" "text/html"}
+         :body (fortune-wheel-page videos)})
 
       (and (= uri "/fortune-wheel-spin") (= method :post))
       (fortune-wheel-spin-handler request)
